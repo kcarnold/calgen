@@ -1,3 +1,4 @@
 pandas
 ics
 streamlit
+openpyxl
