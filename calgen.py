@@ -65,6 +65,16 @@ doctest.run_docstring_examples(parse_time, globals())
 st.title("Teaching Schedule Converter")
 uploaded_file = st.file_uploader("Select the Teaching Schedule Excel file exported from Workday.")
 
+cal = Calendar()
+for i in range(len(special_dates)):
+    evt = Event()
+    evt.name = special_dates['desc'].iloc[i]
+    evt.begin = special_dates['date'].iloc[i]
+    evt.end = evt.begin
+    evt.make_all_day()
+    cal.events.add(evt)
+
+
 if uploaded_file is not None:
     # Read the input file.
     data = pd.read_excel(uploaded_file)
@@ -79,8 +89,6 @@ if uploaded_file is not None:
     # Use single letters for each date ("R" instead of "TH" for Thursday)
     parsed['days'] = parsed['days'].str.replace('TH', 'R')
 
-
-    cal = Calendar()
     for i in range(len(data)):
         start_time, end_time = parsed['time'].iloc[i].split(' - ')
         start_time_p = parse_time(start_time)
