@@ -39,15 +39,28 @@ def iter_meeting_dates(start_date: date, end_date: date, pattern: str, special_d
 
 
 def parse_time(x):
-    """Parse 1:00 PM into hour=13, min=0."""
+    """Parse time strings like 1:00 PM into hour=13, min=0.
+    
+    >>> parse_time("9:55 AM")
+    {'hour': 9, 'minute': 55}
+    >>> parse_time("12:15 PM")
+    {'hour': 12, 'minute': 15}
+    >>> parse_time("1:00 PM")
+    {'hour': 13, 'minute': 0}
+    >>> parse_time("12:05 AM")
+    {'hour': 0, 'minute': 5}
+    """
     hour, min, meridian = re.match(r'^(\d+):(\d+) (AM|PM)', x).groups()
     hour = int(hour)
     min = int(min)
+    if hour == 12:
+        hour = 0
     if meridian == 'PM':
         hour += 12
     return dict(hour=hour, minute=min)
 
-
+import doctest
+doctest.run_docstring_examples(parse_time, globals())
 
 st.title("Teaching Schedule Converter")
 uploaded_file = st.file_uploader("Select the Teaching Schedule Excel file exported from Workday.")
