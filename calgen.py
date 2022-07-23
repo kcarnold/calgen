@@ -116,24 +116,27 @@ if uploaded_file is not None:
         mime="text/calendar"
     )
 
-    def to_datetime(x):
-        if hasattr(x, 'float_timestamp'):
-            return pd.Timestamp.fromtimestamp(x.float_timestamp)
-        return x
+    cal_events = []
+    for evt in cal.events:
+        start = evt.begin.strftime("%I:%M %p")
+        end = evt.end.strftime("%I:%M %p")
+        cal_events.append({
+            "name": evt.name,
+            "location": evt.location,
+            "begin": evt.begin,
+            "day": evt.begin.strftime("%a %b %d"),
+            "times": f"{start} - {end}"
+        })
 
-    cal_table = pd.DataFrame([
-        {k: to_datetime(getattr(evt, k, None)) for k in ['name', 'begin', 'end', 'location']}
-        for evt in cal.events
-    ])
+    cal_table = pd.DataFrame(cal_events)
     cal_table['short_name'] = cal_table['name'].str.extract(r'^(\w+ \d+)')
 
     for title, data in cal_table.groupby('short_name', dropna=False):
+        col_names = ['day', 'times', 'name', 'location']
         if pd.isna(title):
             title = 'Special Events'
+            col_names = ['day', 'name']
+
         st.markdown("## " + title)
         data = data.sort_values('begin')
-        data['day'] = data['begin'].dt.strftime("%a %b %d")
-        data['start'] = data['begin'].dt.strftime("%I:%M %p")
-        data['end'] = data['end'].dt.strftime("%I:%M %p")
-        data['times'] = data['start'].str.cat([data['end']], sep = ' - ')
-        st.write(data[['day', 'times', 'name', 'location']].style.hide_index().to_html(), unsafe_allow_html=True)
+        st.write(data[col_names].style.hide_index().to_html(), unsafe_allow_html=True)
