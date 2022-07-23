@@ -4,6 +4,8 @@ import pandas as pd
 from ics import Calendar, Event
 from datetime import date, timedelta
 
+st.set_page_config(layout="wide")
+
 # Special dates (TODO: don't hard-code)
 # Third entry is the pattern: what day-of-week it corresponds to. See iter_meeting_dates.
 special_dates = [
@@ -134,4 +136,4 @@ if uploaded_file is not None:
         data['start'] = data['begin'].dt.strftime("%I:%M %p")
         data['end'] = data['end'].dt.strftime("%I:%M %p")
         data['times'] = data['start'].str.cat([data['end']], sep = ' - ')
-        st.write(data[['day', 'times', 'name', 'location']])
+        st.write(data[['day', 'times', 'name', 'location']].style.hide_index().to_html(), unsafe_allow_html=True)
