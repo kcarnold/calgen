@@ -18,7 +18,7 @@ special_dates = [
     ['2022-12-08', 'Study', -1]
 ]
 special_dates = pd.DataFrame(special_dates, columns=["date", "desc", "pattern"])
-special_dates['date'] = pd.to_datetime(special_dates['date'])
+special_dates['date'] = pd.to_datetime(special_dates['date']).dt.tz_localize("US/Eastern")
 
 
 def iter_meeting_dates(start_date: date, end_date: date, pattern: str, special_dates):
