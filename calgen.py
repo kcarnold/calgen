@@ -59,8 +59,8 @@ def parse_time(x):
         hour += 12
     return dict(hour=hour, minute=min)
 
-import doctest
-doctest.run_docstring_examples(parse_time, globals())
+#import doctest
+#doctest.run_docstring_examples(parse_time, globals())
 
 st.title("Teaching Schedule Converter")
 uploaded_file = st.file_uploader("Select the Teaching Schedule Excel file exported from Workday.")
