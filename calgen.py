@@ -113,3 +113,25 @@ if uploaded_file is not None:
         file_name="fall_2022_teaching.ics",
         mime="text/calendar"
     )
+
+    def to_datetime(x):
+        if hasattr(x, 'float_timestamp'):
+            return pd.Timestamp.fromtimestamp(x.float_timestamp)
+        return x
+
+    cal_table = pd.DataFrame([
+        {k: to_datetime(getattr(evt, k, None)) for k in ['name', 'begin', 'end', 'location']}
+        for evt in cal.events
+    ])
+    cal_table['short_name'] = cal_table['name'].str.extract(r'^(\w+ \d+)')
+
+    for title, data in cal_table.groupby('short_name', dropna=False):
+        if pd.isna(title):
+            title = 'Special Events'
+        st.markdown("## " + title)
+        data = data.sort_values('begin')
+        data['day'] = data['begin'].dt.strftime("%a %b %d")
+        data['start'] = data['begin'].dt.strftime("%I:%M %p")
+        data['end'] = data['end'].dt.strftime("%I:%M %p")
+        data['times'] = data['start'].str.cat([data['end']], sep = ' - ')
+        st.write(data[['day', 'times', 'name', 'location']])
