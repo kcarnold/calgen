@@ -65,6 +65,8 @@ def parse_time(x):
 #doctest.run_docstring_examples(parse_time, globals())
 
 st.title("Teaching Schedule Converter")
+st.write("by Ken Arnold (CS and Data Science)")
+st.write("To use: go to your Teaching Schedule in Workday and click the button in the top right to export it to Excel format. Then drag and drop the resulting file to the box below. If you encounter any problems, please email your Excel file to ka37@calvin.edu.")
 uploaded_file = st.file_uploader("Select the Teaching Schedule Excel file exported from Workday.")
 
 cal = Calendar()
@@ -115,6 +117,8 @@ if uploaded_file is not None:
         file_name="fall_2022_teaching.ics",
         mime="text/calendar"
     )
+
+    st.write("I recommend importing this into an unused calendar first, to test it.")
 
     if st.checkbox("Show all events (debugging) (may have the incorrect time zone)"):
         cal_events = []
