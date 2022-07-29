@@ -116,27 +116,28 @@ if uploaded_file is not None:
         mime="text/calendar"
     )
 
-    cal_events = []
-    for evt in cal.events:
-        start = evt.begin.strftime("%I:%M %p")
-        end = evt.end.strftime("%I:%M %p")
-        cal_events.append({
-            "name": evt.name,
-            "location": evt.location,
-            "begin": evt.begin,
-            "day": evt.begin.strftime("%a %b %d"),
-            "times": f"{start} - {end}"
-        })
+    if st.checkbox("Show all events (debugging) (may have the incorrect time zone)"):
+        cal_events = []
+        for evt in cal.events:
+            start = evt.begin.strftime("%I:%M %p")
+            end = evt.end.strftime("%I:%M %p")
+            cal_events.append({
+                "name": evt.name,
+                "location": evt.location,
+                "begin": evt.begin,
+                "day": evt.begin.strftime("%a %b %d"),
+                "times": f"{start} - {end}"
+            })
 
-    cal_table = pd.DataFrame(cal_events)
-    cal_table['short_name'] = cal_table['name'].str.extract(r'^(\w+ \d+)')
+        cal_table = pd.DataFrame(cal_events)
+        cal_table['short_name'] = cal_table['name'].str.extract(r'^(\w+ \d+)')
 
-    for title, data in cal_table.groupby('short_name', dropna=False):
-        col_names = ['day', 'times', 'name', 'location']
-        if pd.isna(title):
-            title = 'Special Events'
-            col_names = ['day', 'name']
+        for title, data in cal_table.groupby('short_name', dropna=False):
+            col_names = ['day', 'times', 'name', 'location']
+            if pd.isna(title):
+                title = 'Special Events'
+                col_names = ['day', 'name']
 
-        st.markdown("## " + title)
-        data = data.sort_values('begin')
-        st.write(data[col_names].style.hide_index().to_html(), unsafe_allow_html=True)
+            st.markdown("## " + title)
+            data = data.sort_values('begin')
+            st.write(data[col_names].style.hide_index().to_html(), unsafe_allow_html=True)
