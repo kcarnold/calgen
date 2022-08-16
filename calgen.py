@@ -66,8 +66,20 @@ def parse_time(x):
 
 st.title("Teaching Schedule Converter")
 st.write("by Ken Arnold (CS and Data Science)")
-st.write("To use: go to your Teaching Schedule in Workday and click the button in the top right to export it to Excel format. Then drag and drop the resulting file to the box below. If you encounter any problems, please email your Excel file to ka37@calvin.edu.")
-uploaded_file = st.file_uploader("Select the Teaching Schedule Excel file exported from Workday.")
+st.write("""
+To use:
+
+1. Go to your Teaching Schedule in Workday
+2. Click the button in the top right to export it to Excel format.
+3. Drag and drop the resulting file to the box below.
+4. Click the download button that will soon appear to save the calendar file.
+5. Double-click or drag-and-drop the file into your calendar. (For Outlook, Google Calendar, macOS Calendar, etc.)
+
+If you encounter any problems, please email your Excel file to ka37@calvin.edu.
+
+[Source code](https://github.com/kcarnold/calgen)
+""")
+uploaded_file = st.file_uploader("The Excel file exported from Workday goes here.")
 
 cal = Calendar()
 for i in range(len(special_dates)):
@@ -118,7 +130,12 @@ if uploaded_file is not None:
         mime="text/calendar"
     )
 
-    st.write("I recommend importing this into an unused calendar first, to test it.")
+    st.write("""
+Derek Schuurman suggests:
+
+> I also performed an additional step (which is optional): I first placed the .ics file in a plain-text editor and did a “find and replace” on the room numbers and course names to make them more succinct than the somewhat-more-verbose ones used in workday.
+
+I recommend importing this into an unused calendar first, to test it.""")
 
     if st.checkbox("Show all events (debugging) (may have the incorrect time zone)"):
         cal_events = []
