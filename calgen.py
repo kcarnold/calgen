@@ -90,8 +90,16 @@ for i in range(len(special_dates)):
     evt.make_all_day()
     cal.events.add(evt)
 
+def get_shortnames(items):
+    shortnames = {loc: loc for loc in sorted(set(items))}
+    for it in shortnames:
+        shortnames[it] = st.text_input(it, it).strip()
+    return [shortnames[it] for it in items]
+
 
 if uploaded_file is not None:
+    st.header("Download!")
+
     # Read the input file.
     data = pd.read_excel(uploaded_file)
 
@@ -105,7 +113,13 @@ if uploaded_file is not None:
     # Use single letters for each date ("R" instead of "TH" for Thursday)
     parsed['days'] = parsed['days'].str.replace('TH', 'R')
 
-    for i in range(len(data)):
+    with st.expander(label = "Use abbreviations for names and locations?", expanded=False):
+        st.subheader("Sections")
+        parsed['Course Section'] = get_shortnames(parsed['Course Section'])
+        st.subheader("Locations")
+        parsed['Location'] = get_shortnames(parsed['Location'])
+
+    for i in range(len(parsed)):
         start_time, end_time = parsed['time'].iloc[i].split(' - ')
         start_time_p = parse_time(start_time)
         end_time_p = parse_time(end_time)
@@ -116,14 +130,13 @@ if uploaded_file is not None:
             special_dates
         ):
             evt = Event()
-            evt.name = data['Course Section'].iloc[i]
+            evt.name = parsed['Course Section'].iloc[i]
             evt.begin = pd.Timestamp(meeting_date).replace(**start_time_p).tz_localize('US/Eastern')
             evt.end = pd.Timestamp(meeting_date).replace(**end_time_p).tz_localize('US/Eastern')
-            evt.location = data['Location'].iloc[i]
+            evt.location = parsed['Location'].iloc[i]
             cal.events.add(evt)
 
 
-    st.header("Download!")
     st.download_button(
         label="Download .ics file",
         data=cal.serialize(),
@@ -131,12 +144,7 @@ if uploaded_file is not None:
         mime="text/calendar"
     )
 
-    st.write("""
-Derek Schuurman suggests:
-
-> I also performed an additional step (which is optional): I first placed the .ics file in a plain-text editor and did a “find and replace” on the room numbers and course names to make them more succinct than the somewhat-more-verbose ones used in workday.
-
-I recommend importing this into an unused calendar first, to test it.""")
+    st.write("""I recommend importing this into an unused calendar first, to test it.""")
 
     if st.checkbox("Show all events (debugging) (may have the incorrect time zone)"):
         cal_events = []
