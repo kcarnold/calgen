@@ -4,7 +4,7 @@ import pandas as pd
 from ics import Calendar, Event
 from datetime import date, timedelta
 
-st.set_page_config(layout="wide")
+#st.set_page_config(layout="wide")
 
 # Special dates (TODO: don't hard-code)
 # Third entry is the pattern: what day-of-week it corresponds to. See iter_meeting_dates.
@@ -65,7 +65,7 @@ def parse_time(x):
 #doctest.run_docstring_examples(parse_time, globals())
 
 st.title("Teaching Schedule Converter")
-st.write("by Ken Arnold (CS and Data Science)")
+st.write("by Ken Arnold (CS and Data Science) [Source code](https://github.com/kcarnold/calgen)")
 st.write("""
 To use:
 
@@ -76,9 +76,9 @@ To use:
 5. Double-click or drag-and-drop the file into your calendar. (For Outlook, Google Calendar, macOS Calendar, etc.)
 
 If you encounter any problems, please email your Excel file to ka37@calvin.edu.
-
-[Source code](https://github.com/kcarnold/calgen)
 """)
+
+st.header("Upload!")
 uploaded_file = st.file_uploader("The Excel file exported from Workday goes here.")
 
 cal = Calendar()
@@ -123,6 +123,7 @@ if uploaded_file is not None:
             cal.events.add(evt)
 
 
+    st.header("Download!")
     st.download_button(
         label="Download .ics file",
         data=cal.serialize(),
