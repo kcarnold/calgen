@@ -131,7 +131,7 @@ if uploaded_file is not None:
     # Use single letters for each date ("R" instead of "TH" for Thursday)
     parsed['days'] = parsed['days'].str.replace('TH', 'R')
 
-    with st.expander(label = "Use abbreviations for names and locations?", expanded=False):
+    with st.expander(label = "Use abbreviations for names and locations? (Recommended!)", expanded=False):
         st.subheader("Sections")
         parsed['Course Section'] = get_shortnames(parsed['Course Section'])
         st.subheader("Locations")
