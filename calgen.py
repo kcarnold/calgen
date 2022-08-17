@@ -103,6 +103,11 @@ if uploaded_file is not None:
     # Read the input file.
     data = pd.read_excel(uploaded_file)
 
+    expected_columns = ['Course Section', 'Meeting Time', 'Location', 'Start Date', 'End Date']
+    if not all(col in data.columns for col in expected_columns):
+        st.error("The file is missing some columns we expect. Please email the file to ka37@calvin.edu.")
+        st.stop()
+
     # Merge shadow reservations (multiple locations for the same course section and time)
     data['Location'] = data.groupby(['Course Section', 'Meeting Time'])['Location'].transform(lambda x: ', '.join(x))
     data = data.drop_duplicates(['Course Section', 'Meeting Time'])
