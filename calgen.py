@@ -102,8 +102,19 @@ if uploaded_file is not None:
 
     # Read the input file.
     data = pd.read_excel(uploaded_file)
-
     expected_columns = ['Course Section', 'Meeting Time', 'Location', 'Start Date', 'End Date']
+    if data.columns[0].startswith("View My"):
+        # There are two Excel export buttons on the Workday page. The one on the top includes some header data.
+        # Skip header rows until we get to "Course Section"
+        for idx, entry in enumerate(data.iloc[:, 0]):
+            if entry in expected_columns:
+                break
+        else:
+            st.error("The file is missing some data we expect. Please email the file to ka37@calvin.edu.")
+            st.write(data)
+            st.stop()
+        data = pd.read_excel(uploaded_file, skiprows=idx + 1)
+
     if not all(col in data.columns for col in expected_columns):
         st.error("The file is missing some columns we expect. Please email the file to ka37@calvin.edu.")
         st.stop()
