@@ -102,7 +102,7 @@ if uploaded_file is not None:
 
     # Read the input file.
     def read_file(**kwargs):
-        return pd.read_excel(uploaded_file, na_filter=False, **kwargs)
+        return pd.read_excel(uploaded_file, na_filter=False, dtype={"Location": str}, **kwargs)
     data = read_file()
     expected_columns = ['Course Section', 'Meeting Time', 'Location', 'Start Date', 'End Date']
     if data.columns[0].startswith("View My"):
