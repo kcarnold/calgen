@@ -31,7 +31,7 @@ def iter_meeting_dates(start_date: date, end_date: date, pattern: str, special_d
     while cur <= end_date:
         effective_date = cur.weekday()
         for special in special_dates.itertuples():
-            if cur == special.date:
+            if cur == special.date.date():
                 effective_date = special.pattern
         if effective_date in days:
             yield cur
