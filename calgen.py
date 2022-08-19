@@ -174,14 +174,14 @@ if uploaded_file is not None:
                 "location": evt.location,
                 "begin": evt.begin,
                 "day": evt.begin.strftime("%a %b %d"),
-                "times": f"{start} - {end}"
+                "time": f"{start} - {end}"
             })
 
         cal_table = pd.DataFrame(cal_events)
         cal_table['short_name'] = cal_table['name'].str.extract(r'^(\w+ \d+)')
 
         for title, data in cal_table.groupby('short_name', dropna=False):
-            col_names = ['day', 'times', 'name', 'location']
+            col_names = ['day', 'time', 'name', 'location']
             if pd.isna(title):
                 title = 'Special Events'
                 col_names = ['day', 'name']
