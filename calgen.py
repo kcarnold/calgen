@@ -164,18 +164,42 @@ if uploaded_file is not None:
 
     st.write("""I recommend importing this into an unused calendar first, to test it.""")
 
+    cal_events = []
+    for evt in cal.events:
+        start = evt.begin.strftime("%I:%M %p")
+        end = evt.end.strftime("%I:%M %p")
+        cal_events.append({
+            "name": evt.name,
+            "location": evt.location,
+            "begin": evt.begin,
+            "end": evt.end,
+            "day": evt.begin.strftime("%a %b %d"),
+            "time": f"{start} - {end}",
+            "start": start,
+        })
+
+    from calendar_view.calendar import Calendar
+    from calendar_view.core import data
+    from calendar_view.core.event import Event as CVEvent, EventStyles
+
+    first_day = pd.Timestamp(parsed['Start Date'].min().date()).tz_localize("US/Eastern")
+    print(first_day)
+    last_day = pd.Timestamp(first_day) + pd.Timedelta(days = 7)
+
+    week_events = [
+        CVEvent(day=event['begin'].date(), start=event['begin'].strftime("%H:%M"), end=event['end'].strftime("%H:%M"), title=event['name'])
+        for event in cal_events
+        if event['begin'] < last_day
+    ]
+    cal_view = Calendar.build(data.CalendarConfig(
+        lang = "en",
+        dates = f"{first_day.date()} - {last_day.date()}",
+        hours = "8 - 22",
+    ))
+    cal_view.add_events(week_events)
+    cal_view.save('tmp.png')
+
     if st.checkbox("Show all events (debugging) (may have the incorrect time zone)"):
-        cal_events = []
-        for evt in cal.events:
-            start = evt.begin.strftime("%I:%M %p")
-            end = evt.end.strftime("%I:%M %p")
-            cal_events.append({
-                "name": evt.name,
-                "location": evt.location,
-                "begin": evt.begin,
-                "day": evt.begin.strftime("%a %b %d"),
-                "time": f"{start} - {end}"
-            })
 
         cal_table = pd.DataFrame(cal_events)
         cal_table['short_name'] = cal_table['name'].str.extract(r'^(\w+ \d+)')
