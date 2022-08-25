@@ -2,6 +2,8 @@ import streamlit as st
 import re
 import pandas as pd
 from ics import Calendar, Event
+from ics.parse import ContentLine
+from ics.valuetype.datetime import DatetimeConverter
 from datetime import date, timedelta
 
 #st.set_page_config(layout="wide")
@@ -28,15 +30,16 @@ def iter_meeting_dates(start_date: date, end_date: date, pattern: str, special_d
     one_day = timedelta(days=1)
     days = ['MTWRFSU'.index(d) for d in pattern]
     cur = start_date
+    semester_ended = False
     while cur <= end_date:
         effective_date = cur.weekday()
         for special in special_dates.itertuples():
             if cur == special.date.date():
                 effective_date = special.pattern
-        if effective_date in days:
-            yield cur
+        meets_today = effective_date in days and not semester_ended
+        yield cur, meets_today
         if effective_date == -1:
-            break
+            semester_ended = True
         cur += one_day
 
 
@@ -166,18 +169,30 @@ if uploaded_file is not None:
         start_time, end_time = parsed['time'].iloc[i].split(' - ')
         start_time_p = parse_time(start_time)
         end_time_p = parse_time(end_time)
-        for meeting_date in iter_meeting_dates(
+        exceptions = []
+        evt = Event()
+        evt.name = parsed['Course Section'].iloc[i]
+        evt.location = parsed['Location'].iloc[i]
+        has_occurred = False
+        for meeting_date, meets_today in iter_meeting_dates(
             parsed['Start Date'].iloc[i].date(),
             parsed['End Date'].iloc[i].date(),
             parsed['days'].iloc[i],
             special_dates
         ):
-            evt = Event()
-            evt.name = parsed['Course Section'].iloc[i]
-            evt.begin = pd.Timestamp(meeting_date).replace(**start_time_p).tz_localize('US/Eastern')
-            evt.end = pd.Timestamp(meeting_date).replace(**end_time_p).tz_localize('US/Eastern')
-            evt.location = parsed['Location'].iloc[i]
-            cal.events.add(evt)
+            begin_ts = pd.Timestamp(meeting_date).replace(**start_time_p).tz_localize('US/Eastern')
+            if meets_today:
+                if not has_occurred:
+                    evt.begin = begin_ts
+                    evt.end = pd.Timestamp(meeting_date).replace(**end_time_p).tz_localize('US/Eastern')
+            else:
+                exceptions.append(begin_ts)
+        DatetimeConverter.serialize(begin_ts)
+        print("End date", )
+        evt.extra = [
+            ContentLine(name="RRULE", value="FREQ=DAILY;INTERVAL=1;UNTIL=20220912T035959Z")
+        ]
+        cal.events.add(evt)
 
 
     st.download_button(
