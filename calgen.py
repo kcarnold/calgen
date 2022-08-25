@@ -97,14 +97,29 @@ def get_shortnames(items):
     return [shortnames[it] for it in items]
 
 
-if uploaded_file is not None:
-    st.header("Download!")
-
+expected_columns = ['Course Section', 'Meeting Time', 'Location', 'Start Date', 'End Date']
+def load_file(uploaded_file):
     # Read the input file.
     def read_file(**kwargs):
         return pd.read_excel(uploaded_file, na_filter=False, dtype={"Location": str}, **kwargs)
+
     data = read_file()
-    expected_columns = ['Course Section', 'Meeting Time', 'Location', 'Start Date', 'End Date']
+
+    if data.columns[0] == 'My Enrolled Courses':
+        # This is a student schedule.
+        for idx in range(len(data)):
+            if 'Start Date' in data.iloc[idx]:
+                break
+        else:
+            st.error("The file is missing some data we expect. Please email the file to ka37@calvin.edu.")
+            print("Error")
+            print(data)
+            st.stop()
+        data = read_file(skiprows=idx + 1)
+        data.rename({"Section": "Course Section"}, inplace=True)
+        # Gotta parse out "Meeting Pattern"s...
+        return data
+
     if data.columns[0].startswith("View My"):
         # There are two Excel export buttons on the Workday page. The one on the top includes some header data.
         # Skip header rows until we get to "Course Section"
@@ -116,7 +131,13 @@ if uploaded_file is not None:
             st.write(data)
             st.stop()
         data = read_file(skiprows=idx + 1)
+    return data
 
+
+if uploaded_file is not None:
+    st.header("Download!")
+
+    data = load_file(uploaded_file)
     if not all(col in data.columns for col in expected_columns):
         st.error("The file is missing some columns we expect. Please email the file to ka37@calvin.edu.")
         st.stop()
