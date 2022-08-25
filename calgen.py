@@ -159,6 +159,9 @@ if uploaded_file is not None:
         parsed['Location'] = get_shortnames(parsed['Location'])
 
     for i in range(len(parsed)):
+        if not isinstance(parsed['time'].iloc[i], str):
+            st.warning(f"Skipping {parsed['Course Section'].iloc[i]} because no meeting times.")
+            continue
         start_time, end_time = parsed['time'].iloc[i].split(' - ')
         start_time_p = parse_time(start_time)
         end_time_p = parse_time(end_time)
