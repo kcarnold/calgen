@@ -91,10 +91,11 @@ for i in range(len(special_dates)):
     cal.events.add(evt)
 
 def get_shortnames(items):
-    shortnames = {loc: loc for loc in sorted(set(items))}
-    for it in shortnames:
-        shortnames[it] = st.text_input(it, it).strip()
-    return [shortnames[it] for it in items]
+    shortnames = {
+        loc: st.text_input(loc, loc).strip()
+        for loc in sorted(set(items)) if loc
+    }
+    return [shortnames.get(it, it) for it in items]
 
 
 expected_columns = ['Course Section', 'Meeting Time', 'Location', 'Start Date', 'End Date']
