@@ -64,13 +64,13 @@ def parse_time(x):
 #import doctest
 #doctest.run_docstring_examples(parse_time, globals())
 
-st.title("Teaching Schedule Converter (Fall 2022 only)")
+st.title("Workday Schedule Converter (Fall 2022 only)")
 st.write("by Ken Arnold (CS and Data Science) [Source code](https://github.com/kcarnold/calgen)")
 st.write("""
 To use:
 
-1. Go to your Teaching Schedule in Workday
-2. Click the button in the top right to export it to Excel format.
+1. Go to your Teaching Schedule or Current Classes in Workday
+2. Click the button in the top right of the table to export it to Excel format.
 3. Drag and drop the resulting file to the box below.
 4. Click the download button that will soon appear to save the calendar file.
 5. Double-click or drag-and-drop the file into your calendar. (For Outlook, Google Calendar, macOS Calendar, etc.)
