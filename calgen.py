@@ -1,15 +1,26 @@
+from typing import List
+from dataclasses import dataclass, field
 import streamlit as st
 import re
 import pandas as pd
-from ics import Calendar, Event
-from ics.parse import ContentLine
-from ics.valuetype.datetime import DatetimeConverter
 from datetime import date, timedelta
+
+from ical_writer import all_day_event, recurring_event, write_ics
 
 #st.set_page_config(layout="wide")
 
 # Special dates (TODO: don't hard-code)
 # Third entry is the pattern: what day-of-week it corresponds to. See iter_meeting_dates.
+@dataclass
+class SpecialDate:
+    date_str: str
+    name: str
+    pattern: str
+    date: date = field(init=False)
+
+    def __post_init__(self):
+        self.date = date.fromisoformat(self.date_str)
+
 special_dates = [
     ['2022-09-05', 'Labor Day', None],
     ['2022-10-10', 'Fall Break', None],
@@ -21,8 +32,7 @@ special_dates = [
     ['2022-11-25', 'Thanksgiving', None],
     ['2022-12-08', 'Study', -1]
 ]
-special_dates = pd.DataFrame(special_dates, columns=["date", "desc", "pattern"])
-special_dates['date'] = pd.to_datetime(special_dates['date']).dt.tz_localize("US/Eastern")
+special_dates = [SpecialDate(*d) for d in special_dates]
 
 
 def iter_meeting_dates(start_date: date, end_date: date, pattern: str, special_dates):
@@ -32,12 +42,15 @@ def iter_meeting_dates(start_date: date, end_date: date, pattern: str, special_d
     cur = start_date
     semester_ended = False
     while cur <= end_date:
-        effective_date = cur.weekday()
-        for special in special_dates.itertuples():
-            if cur == special.date.date():
+        effective_date = true_date = cur.weekday()
+        for special in special_dates:
+            if cur == special.date:
                 effective_date = special.pattern
+        normally_meets_today = true_date in days
         meets_today = effective_date in days and not semester_ended
-        yield cur, meets_today
+        is_exception = normally_meets_today and not meets_today
+        is_abnormal_meeting = not normally_meets_today and meets_today
+        yield cur, meets_today, is_exception, is_abnormal_meeting
         if effective_date == -1:
             semester_ended = True
         cur += one_day
@@ -84,14 +97,10 @@ If you encounter any problems, please email your Excel file to ka37@calvin.edu.
 st.header("Upload!")
 uploaded_file = st.file_uploader("The Excel file exported from Workday goes here.")
 
-cal = Calendar()
-for i in range(len(special_dates)):
-    evt = Event()
-    evt.name = special_dates['desc'].iloc[i]
-    evt.begin = special_dates['date'].iloc[i]
-    evt.end = evt.begin
-    evt.make_all_day()
-    cal.events.add(evt)
+all_day_events = [
+    all_day_event(special.date, special.name)
+    for special in special_dates
+]
 
 def get_shortnames(items):
     shortnames = {
@@ -162,42 +171,66 @@ if uploaded_file is not None:
         st.subheader("Locations")
         parsed['Location'] = get_shortnames(parsed['Location'])
 
+    recurring_events = []
     for i in range(len(parsed)):
-        if not isinstance(parsed['time'].iloc[i], str):
-            st.warning(f"Skipping {parsed['Course Section'].iloc[i]} because no meeting times.")
+        section_name = parsed['Course Section'].iloc[i]
+        meeting_time = parsed['time'].iloc[i]
+
+        if not isinstance(meeting_time, str):
+            st.warning(f"Skipping {section_name} because no meeting times.")
             continue
-        start_time, end_time = parsed['time'].iloc[i].split(' - ')
+
+        location = parsed['Location'].iloc[i]
+        meeting_pattern = parsed['days'].iloc[i]
+        start_time, end_time = meeting_time.split(' - ')
         start_time_p = parse_time(start_time)
         end_time_p = parse_time(end_time)
         exceptions = []
-        evt = Event()
-        evt.name = parsed['Course Section'].iloc[i]
-        evt.location = parsed['Location'].iloc[i]
+
         has_occurred = False
-        for meeting_date, meets_today in iter_meeting_dates(
+        occurrences = list(iter_meeting_dates(
             parsed['Start Date'].iloc[i].date(),
             parsed['End Date'].iloc[i].date(),
-            parsed['days'].iloc[i],
+            meeting_pattern,
             special_dates
-        ):
-            begin_ts = pd.Timestamp(meeting_date).replace(**start_time_p).tz_localize('US/Eastern')
-            if meets_today:
-                if not has_occurred:
-                    evt.begin = begin_ts
-                    evt.end = pd.Timestamp(meeting_date).replace(**end_time_p).tz_localize('US/Eastern')
-            else:
-                exceptions.append(begin_ts)
-        DatetimeConverter.serialize(begin_ts)
-        print("End date", )
-        evt.extra = [
-            ContentLine(name="RRULE", value="FREQ=DAILY;INTERVAL=1;UNTIL=20220912T035959Z")
-        ]
-        cal.events.add(evt)
+        ))
 
+        assert not any(
+            is_abnormal_meeting
+            for meeting_date, meets_today, is_exception, is_abnormal_meeting
+            in occurrences), "Abnormal meetings not yet supported."
+
+        actual_occurrences = [occur for occur in occurrences if occur[1]]
+        first_meeting_date = actual_occurrences[0][0]
+        last_meeting_date = actual_occurrences[-1][0]
+
+        exceptions_dates = [
+            meeting_date
+            for meeting_date, meets_today, is_exception, is_abnormal_meeting in occurrences
+            if is_exception and meeting_date <= last_meeting_date
+        ]
+
+        recurring_events.append(
+            recurring_event(
+                first_date=first_meeting_date,
+                last_date=last_meeting_date,
+                summary=section_name,
+                location=location,
+                start_time_p=start_time_p,
+                end_time_p=end_time_p,
+                meeting_pattern=meeting_pattern,
+                exceptions=exceptions_dates)
+        )
+
+    ics_file = write_ics(
+        all_day_events + recurring_events
+    )
+
+    print(ics_file)
 
     st.download_button(
         label="Download .ics file",
-        data=cal.serialize(),
+        data=ics_file,
         file_name="fall_2022_teaching.ics",
         mime="text/calendar"
     )
