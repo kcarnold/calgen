@@ -1,4 +1,5 @@
 pandas
-ics
+icalendar
+recurring-ical-events
 streamlit
 openpyxl

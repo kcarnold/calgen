@@ -222,15 +222,15 @@ if uploaded_file is not None:
                 exceptions=exceptions_dates)
         )
 
-    ics_file = write_ics(
+    ics_string = write_ics(
         all_day_events + recurring_events
     )
 
-    print(ics_file)
+    print(ics_string)
 
     st.download_button(
         label="Download .ics file",
-        data=ics_file,
+        data=ics_string,
         file_name="fall_2022_teaching.ics",
         mime="text/calendar"
     )
@@ -238,15 +238,26 @@ if uploaded_file is not None:
     st.write("""I recommend importing this into an unused calendar first, to test it.""")
 
     if st.checkbox("Show all events (debugging) (may have the incorrect time zone)"):
+        import icalendar
+        import recurring_ical_events
+
+        calendar = icalendar.Calendar.from_ical(ics_string)
+        earliest_date = min(parsed['Start Date']).date()
+        latest_date = max(parsed['End Date']).date()
+
+        raw_events = recurring_ical_events.of(calendar).between(earliest_date, latest_date)
+
         cal_events = []
-        for evt in cal.events:
-            start = evt.begin.strftime("%I:%M %p")
-            end = evt.end.strftime("%I:%M %p")
+        for evt in raw_events:
+            print(evt)
+            begin = evt['DTSTART'].dt
+            start = begin.strftime("%I:%M %p")
+            end = evt['DTEND'].dt.strftime("%I:%M %p")
             cal_events.append({
-                "name": evt.name,
-                "location": evt.location,
-                "begin": evt.begin,
-                "day": evt.begin.strftime("%a %b %d"),
+                "name": evt.decoded('SUMMARY').decode('utf-8'),
+                "location": evt.decoded("LOCATION").decode('utf-8') if 'LOCATION' in evt else None,
+                "begin": begin,
+                "day": begin.strftime("%a %b %d"),
                 "time": f"{start} - {end}"
             })
 
