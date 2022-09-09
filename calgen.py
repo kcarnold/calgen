@@ -249,7 +249,6 @@ if uploaded_file is not None:
 
         cal_events = []
         for evt in raw_events:
-            print(evt)
             begin = evt['DTSTART'].dt
             start = begin.strftime("%I:%M %p")
             end = evt['DTEND'].dt.strftime("%I:%M %p")

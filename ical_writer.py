@@ -34,6 +34,9 @@ footer = 'END:VCALENDAR\n'
 def generate_uid():
     return str(uuid4())
 
+def generate_dtstamp():
+    return datetime.datetime.now().strftime("%Y%m%dT%H%M%SZ")
+
 def ics_date(date: datetime.date):
     return date.strftime("%Y%m%d")
     
@@ -49,16 +52,27 @@ def all_day_event(date: datetime.date, summary):
 DTSTART;VALUE=DATE:{ics_date(date)}
 SUMMARY:{summary}
 UID:{generate_uid()}
+DTSTAMP:{generate_dtstamp()}
 END:VEVENT
 '''
 
+date_to_rrule = {
+    'U': "SU",
+    'M': "MO",
+    'T': "TU",
+    'W': "WE",
+    'R': "TH",
+    'F': "FR",
+    'S': "SA"
+}
+
 def recurring_event(first_date: str, last_date: str, summary: str, location: str,
     start_time_p, end_time_p, meeting_pattern, exceptions):
-    pattern = 'MO,WE,FR' # FIXME!
+    pattern = ','.join(date_to_rrule[d] for d in meeting_pattern)
     exceptions_str = '\n'.join('EXDATE;TZID=America/Detroit:' + ics_datetime(exdate, start_time_p) for exdate in exceptions)
     return f'''\
 BEGIN:VEVENT
-DTSTAMP:20220827T120000Z
+DTSTAMP:{generate_dtstamp()}
 SUMMARY:{summary}
 LOCATION:{location}
 DTSTART;TZID=America/Detroit:{ics_datetime(first_date, start_time_p)}
@@ -71,4 +85,6 @@ END:VEVENT
 
 def write_ics(events):
     result = header + '\n' + '\n'.join(events) + '\n' + footer
-    return result.replace('\n', '\r\n')
+    lines = result.split('\n')
+    lines = [line for line in lines if line.strip()]
+    return '\r\n'.join(lines)
