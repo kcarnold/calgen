@@ -226,8 +226,6 @@ if uploaded_file is not None:
         all_day_events + recurring_events
     )
 
-    print(ics_string)
-
     st.download_button(
         label="Download .ics file",
         data=ics_string,
