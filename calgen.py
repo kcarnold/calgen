@@ -92,6 +92,10 @@ To use:
 5. Double-click or drag-and-drop the file into your calendar. (For Outlook, Google Calendar, macOS Calendar, etc.)
 
 If you encounter any problems, please email your Excel file to ka37@calvin.edu.
+
+Note: Spring 2023 schedule is not yet loaded. It has a Thursday-with-Friday-schedule, which is tricky.
+
+- 2022-09-10: Make recurring events instead of individual occurrences.
 """)
 
 st.header("Upload!")
