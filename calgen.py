@@ -1,9 +1,8 @@
 from typing import List
-from dataclasses import dataclass, field
 import streamlit as st
 import re
 import pandas as pd
-from datetime import date, timedelta
+import datetime
 
 from ical_writer import all_day_event, recurring_event, write_ics
 
@@ -11,15 +10,14 @@ from ical_writer import all_day_event, recurring_event, write_ics
 
 # Special dates (TODO: don't hard-code)
 # Third entry is the pattern: what day-of-week it corresponds to. See iter_meeting_dates.
-@dataclass
 class SpecialDate:
-    date_str: str
-    name: str
-    pattern: str
-    date: date = field(init=False)
-
-    def __post_init__(self):
-        self.date = date.fromisoformat(self.date_str)
+    def __init__(self, date: str | datetime.date, name: str, pattern: str):
+        if isinstance(date, str):
+            date =  datetime.date.fromisoformat(date)
+        self.date = date
+        self.name = name
+        self.pattern = pattern
+        
 
 special_dates = [
     ['2022-09-05', 'Labor Day', None],
@@ -35,9 +33,9 @@ special_dates = [
 special_dates = [SpecialDate(*d) for d in special_dates]
 
 
-def iter_meeting_dates(start_date: date, end_date: date, pattern: str, special_dates):
+def iter_meeting_dates(start_date: datetime.date, end_date: datetime.date, pattern: str, special_dates):
     '''Yield all meeting times for the given class, given a meeting pattern.'''
-    one_day = timedelta(days=1)
+    one_day = datetime.timedelta(days=1)
     days = ['MTWRFSU'.index(d) for d in pattern]
     cur = start_date
     semester_ended = False
