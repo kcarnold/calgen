@@ -20,6 +20,7 @@ class SpecialDate:
         
 
 special_dates = [
+    # Fall 2022
     ['2022-09-05', 'Labor Day', None],
     ['2022-10-10', 'Fall Break', None],
     ['2022-10-11', 'Fall Break', None],
@@ -28,7 +29,20 @@ special_dates = [
     ['2022-11-23', 'Thanksgiving', None],
     ['2022-11-24', 'Thanksgiving', None],
     ['2022-11-25', 'Thanksgiving', None],
-    ['2022-12-08', 'Study', -1]
+    ['2022-12-08', 'Study', -1],
+    # Spring 2023
+    ['2023-02-27', 'Spring Break', None],
+    ['2023-02-28', 'Spring Break', None],
+    ['2023-03-01', 'Spring Break', None],
+    ['2023-03-02', 'Spring Break', None],
+    ['2023-03-03', 'Spring Break', None],
+    ['2023-03-03', 'Spring Break', None],
+    ['2023-03-21', 'Advising', None],
+    ['2023-03-22', 'Advising', None],
+    ['2023-04-07', 'Good Friday', None],
+    ['2023-04-10', 'Easter Monday', None],
+    ['2023-04-20', 'Thursday with Friday schedule', None], #TODO: this should be "F" and generate an abnormal event. This is tricky because it needs to be associated with a valid recurrence, and RDATE isn't well supported.
+    ['2023-04-21', 'Exams Start', -1],
 ]
 special_dates = [SpecialDate(*d) for d in special_dates]
 
