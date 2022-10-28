@@ -11,7 +11,7 @@ from ical_writer import all_day_event, recurring_event, write_ics
 # Special dates (TODO: don't hard-code)
 # Third entry is the pattern: what day-of-week it corresponds to. See iter_meeting_dates.
 class SpecialDate:
-    def __init__(self, date: str | datetime.date, name: str, pattern: str):
+    def __init__(self, date, name: str, pattern: str):
         if isinstance(date, str):
             date =  datetime.date.fromisoformat(date)
         self.date = date
