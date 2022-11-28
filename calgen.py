@@ -8,14 +8,20 @@ from ical_writer import all_day_event, recurring_event, write_ics
 
 #st.set_page_config(layout="wide")
 
+def letter_to_day(d):
+    return 'MTWRFSU'.index(d)
+
 # Special dates (TODO: don't hard-code)
 # Third entry is the pattern: what day-of-week it corresponds to. See iter_meeting_dates.
+
 class SpecialDate:
-    def __init__(self, date, name: str, pattern: str):
+    def __init__(self, date, name: str, pattern):
         if isinstance(date, str):
             date =  datetime.date.fromisoformat(date)
         self.date = date
         self.name = name
+        if isinstance(pattern, str):
+            pattern = letter_to_day(pattern)
         self.pattern = pattern
         
 
@@ -41,7 +47,7 @@ special_dates = [
     ['2023-03-22', 'Advising', None],
     ['2023-04-07', 'Good Friday', None],
     ['2023-04-10', 'Easter Monday', None],
-    ['2023-04-20', 'Thursday with Friday schedule', None], #TODO: this should be "F" and generate an abnormal event. This is tricky because it needs to be associated with a valid recurrence, and RDATE isn't well supported.
+    ['2023-04-20', 'Thursday with Friday schedule', "F"],
     ['2023-04-21', 'Exams Start', -1],
 ]
 special_dates = [SpecialDate(*d) for d in special_dates]
@@ -50,7 +56,7 @@ special_dates = [SpecialDate(*d) for d in special_dates]
 def iter_meeting_dates(start_date: datetime.date, end_date: datetime.date, pattern: str, special_dates):
     '''Yield all meeting times for the given class, given a meeting pattern.'''
     one_day = datetime.timedelta(days=1)
-    days = ['MTWRFSU'.index(d) for d in pattern]
+    days = [letter_to_day(d) for d in pattern]
     cur = start_date
     semester_ended = False
     while cur <= end_date:
@@ -105,18 +111,13 @@ To use:
 
 If you encounter any problems, please email your Excel file to ka37@calvin.edu.
 
-Note: Spring 2023 schedule is not yet loaded. It has a Thursday-with-Friday-schedule, which is tricky.
-
+- 2022-11-28: Load Spring 2023 schedule, fix bugs.
 - 2022-09-10: Make recurring events instead of individual occurrences.
 """)
 
 st.header("Upload!")
 uploaded_file = st.file_uploader("The Excel file exported from Workday goes here.")
 
-all_day_events = [
-    all_day_event(special.date, special.name)
-    for special in special_dates
-]
 
 def get_shortnames(items):
     shortnames = {
@@ -186,6 +187,9 @@ if uploaded_file is not None:
         parsed['Course Section'] = get_shortnames(parsed['Course Section'])
         st.subheader("Locations")
         parsed['Location'] = get_shortnames(parsed['Location'])
+
+    earliest_date = min(parsed['Start Date']).date()
+    latest_date = max(parsed['End Date']).date()
 
     recurring_events = []
     for i in range(len(parsed)):
@@ -273,8 +277,6 @@ if uploaded_file is not None:
         import recurring_ical_events
 
         calendar = icalendar.Calendar.from_ical(ics_string)
-        earliest_date = min(parsed['Start Date']).date()
-        latest_date = max(parsed['End Date']).date()
 
         raw_events = recurring_ical_events.of(calendar).between(earliest_date, latest_date)
 
