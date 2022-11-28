@@ -211,11 +211,6 @@ if uploaded_file is not None:
             special_dates
         ))
 
-        assert not any(
-            is_abnormal_meeting
-            for meeting_date, meets_today, is_exception, is_abnormal_meeting
-            in occurrences), "Abnormal meetings not yet supported."
-
         actual_occurrences = [occur for occur in occurrences if occur[1]]
         first_meeting_date = actual_occurrences[0][0]
         last_meeting_date = actual_occurrences[-1][0]
@@ -237,6 +232,28 @@ if uploaded_file is not None:
                 meeting_pattern=meeting_pattern,
                 exceptions=exceptions_dates)
         )
+
+        # HACK: Add new events for each abnormal meeting.
+        for meeting_date, meets_today, is_exception, is_abnormal_meeting in occurrences:
+            if not is_abnormal_meeting:
+                continue
+            recurring_events.append(
+                recurring_event(
+                    first_date=meeting_date,
+                    last_date=None,
+                    summary=section_name,
+                    location=location,
+                    start_time_p=start_time_p,
+                    end_time_p=end_time_p,
+                    meeting_pattern=None,
+                    exceptions=[])
+            )
+
+    all_day_events = [
+        all_day_event(special.date, special.name)
+        for special in special_dates
+        if earliest_date <= special.date <= latest_date
+    ]
 
     ics_string = write_ics(
         all_day_events + recurring_events

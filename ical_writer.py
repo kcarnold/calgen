@@ -68,8 +68,13 @@ date_to_rrule = {
 
 def recurring_event(first_date: str, last_date: str, summary: str, location: str,
     start_time_p, end_time_p, meeting_pattern, exceptions):
-    pattern = ','.join(date_to_rrule[d] for d in meeting_pattern)
-    exceptions_str = '\n'.join('EXDATE;TZID=America/Detroit:' + ics_datetime(exdate, start_time_p) for exdate in exceptions)
+    if meeting_pattern is not None:
+        pattern = ','.join(date_to_rrule[d] for d in meeting_pattern)
+        rrule = f'''RRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY={pattern};UNTIL={ics_datetime(last_date, {'hour': 23, 'minute': 59})}Z'''
+        exceptions_str = '\n'.join('EXDATE;TZID=America/Detroit:' + ics_datetime(exdate, start_time_p) for exdate in exceptions)
+    else:
+        assert len(exceptions) == 0
+        rrule = exceptions_str = ''
     return f'''\
 BEGIN:VEVENT
 DTSTAMP:{generate_dtstamp()}
@@ -78,7 +83,7 @@ LOCATION:{location}
 DTSTART;TZID=America/Detroit:{ics_datetime(first_date, start_time_p)}
 DTEND;TZID=America/Detroit:{ics_datetime(first_date, end_time_p)}
 UID:{generate_uid()}
-RRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY={pattern};UNTIL={ics_datetime(last_date, {'hour': 23, 'minute': 59})}Z
+{rrule}
 {exceptions_str}
 END:VEVENT
 '''
