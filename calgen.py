@@ -245,7 +245,7 @@ if uploaded_file is not None:
     st.download_button(
         label="Download .ics file",
         data=ics_string,
-        file_name="fall_2022_teaching.ics",
+        file_name="teaching_schedule.ics",
         mime="text/calendar"
     )
 
