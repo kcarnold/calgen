@@ -120,7 +120,7 @@ all_day_events = [
 
 def get_shortnames(items):
     shortnames = {
-        loc: st.text_input(loc, loc).strip()
+        loc: st.text_input("Short name for " + loc, loc, help="Type the short name here and press Enter").strip()
         for loc in sorted(set(items)) if loc
     }
     return [shortnames.get(it, it) for it in items]
@@ -181,7 +181,7 @@ if uploaded_file is not None:
     # Use single letters for each date ("R" instead of "TH" for Thursday)
     parsed['days'] = parsed['days'].str.replace('TH', 'R')
 
-    with st.expander(label = "Use abbreviations for names and locations? (Recommended!)", expanded=False):
+    with st.expander(label = "Use abbreviations for names and locations? (Recommended!)", expanded=True):
         st.subheader("Sections")
         parsed['Course Section'] = get_shortnames(parsed['Course Section'])
         st.subheader("Locations")
