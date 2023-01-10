@@ -108,9 +108,11 @@ To use:
 3. Drag and drop the resulting file to the box below.
 4. Click the download button that will soon appear to save the calendar file.
 5. Double-click or drag-and-drop the file into your calendar. (For Outlook, Google Calendar, macOS Calendar, etc.)
+6. To make calendar events into Teams meetings, edit it in Outlook calendar view.
 
 If you encounter any problems, please email your Excel file to ka37@calvin.edu.
 
+- 2023-01-10: Add note about how to make a Teams meeting (thanks, Mark Muyskens)
 - 2022-11-28: Load Spring 2023 schedule, fix bugs.
 - 2022-09-10: Make recurring events instead of individual occurrences.
 """)
