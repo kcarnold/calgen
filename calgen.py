@@ -101,7 +101,7 @@ def parse_time(x):
 #import doctest
 #doctest.run_docstring_examples(parse_time, globals())
 
-st.title("Workday Schedule Converter (Fall 2022 only)")
+st.title("Workday Schedule Converter (22/FA and 23/SP only)")
 st.write("by Ken Arnold (CS and Data Science) [Source code](https://github.com/kcarnold/calgen)")
 st.write("""
 To use:
