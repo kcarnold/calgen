@@ -42,7 +42,6 @@ special_dates = [
     ['2023-03-01', 'Spring Break', None],
     ['2023-03-02', 'Spring Break', None],
     ['2023-03-03', 'Spring Break', None],
-    ['2023-03-03', 'Spring Break', None],
     ['2023-03-21', 'Advising', None],
     ['2023-03-22', 'Advising', None],
     ['2023-04-07', 'Good Friday', None],
@@ -52,6 +51,10 @@ special_dates = [
 ]
 special_dates = [SpecialDate(*d) for d in special_dates]
 
+from collections import Counter
+duplicated_dates = [d for d, c in Counter([d.date for d in special_dates]).items() if c > 1]
+if duplicated_dates:
+    print("Warning: duplicated dates:", duplicated_dates)
 
 def iter_meeting_dates(start_date: datetime.date, end_date: datetime.date, pattern: str, special_dates):
     '''Yield all meeting times for the given class, given a meeting pattern.'''
