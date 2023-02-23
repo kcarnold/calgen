@@ -54,7 +54,7 @@ special_dates = [SpecialDate(*d) for d in special_dates]
 from collections import Counter
 duplicated_dates = [d for d, c in Counter([d.date for d in special_dates]).items() if c > 1]
 if duplicated_dates:
-    print("Warning: duplicated dates:", duplicated_dates)
+    st.warning("Warning: duplicated dates:", duplicated_dates)
 
 def iter_meeting_dates(start_date: datetime.date, end_date: datetime.date, pattern: str, special_dates):
     '''Yield all meeting times for the given class, given a meeting pattern.'''
