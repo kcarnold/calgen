@@ -115,10 +115,15 @@ To use:
 
 If you encounter any problems, please email your Excel file to ka37@calvin.edu.
 
+<details><summary>Changelog</summary>
+
+- 2023-02-23: Fix duplicated Spring Break date.
 - 2023-01-10: Add note about how to make a Teams meeting (thanks, Mark Muyskens)
 - 2022-11-28: Load Spring 2023 schedule, fix bugs.
 - 2022-09-10: Make recurring events instead of individual occurrences.
-""")
+
+</details>
+""", unsafe_allow_html=True)
 
 st.header("Upload!")
 uploaded_file = st.file_uploader("The Excel file exported from Workday goes here.")
