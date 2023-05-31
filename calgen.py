@@ -314,4 +314,4 @@ if uploaded_file is not None:
 
             st.markdown("## " + title)
             data = data.sort_values('begin')
-            st.write(data[col_names].style.hide_index().to_html(), unsafe_allow_html=True)
+            st.write(data[col_names].style.hide(axis="index").to_html(), unsafe_allow_html=True)
