@@ -48,6 +48,35 @@ special_dates = [
     ['2023-04-10', 'Easter Monday', None],
     ['2023-04-20', 'Thursday with Friday schedule', "F"],
     ['2023-04-21', 'Exams Start', -1],
+    # Fall 2023
+    ['2023-09-04', 'Labor Day', None],
+    ['2023-10-13', 'Fall Break', None],
+    ['2023-10-16', 'Fall Break', None],
+    ['2023-10-17', 'Advising', None],
+    ['2023-10-18', 'Advising', None],
+    ['2023-11-22', 'Thanksgiving', None],
+    ['2023-11-23', 'Thanksgiving', None],
+    ['2023-11-24', 'Thanksgiving', None],
+    ['2023-12-08', 'Study', -1],
+    # Spring 2024
+    ['2024-01-15', 'MLK Day', None],
+    ['2024-03-04', 'Spring Break', None],
+    ['2024-03-05', 'Spring Break', None],
+    ['2024-03-06', 'Spring Break', None],
+    ['2024-03-07', 'Spring Break', None],
+    ['2024-03-08', 'Spring Break', None],
+    ['2024-03-20', 'Advising', None],
+    ['2024-03-21', 'Advising', None],
+    ['2024-03-29', 'Good Friday', None],
+    ['2024-04-01', 'Easter Monday', None],
+    ['2024-04-27', 'Exams Start', -1],
+    # Summer 2024
+    ['2024-05-24', 'Memorial Day', None],
+    ['2024-05-27', 'Memorial Day', None],
+    ['2024-07-03', 'Independence Day', None],
+    ['2024-07-04', 'Independence Day', None],
+    ['2024-07-05', 'Independence Day', None],
+    ['2024-08-17', 'Exams Start', -1]
 ]
 special_dates = [SpecialDate(*d) for d in special_dates]
 
@@ -101,8 +130,8 @@ def parse_time(x):
 #import doctest
 #doctest.run_docstring_examples(parse_time, globals())
 
-st.title("Workday Schedule Converter (22/FA and 23/SP only)")
-st.write("by Ken Arnold (CS and Data Science) [Source code](https://github.com/kcarnold/calgen)")
+st.title("Workday Schedule Converter")
+st.write("by Ken Arnold (CS and Data Science) [Source code](https://github.com/kcarnold/calgen) Updated through Summer 2024.")
 st.write("""
 To use:
 
@@ -117,6 +146,7 @@ If you encounter any problems, please email your Excel file to ka37@calvin.edu.
 
 <details><summary>Changelog</summary>
 
+- 2023-05-31: Update through Summer 2024. (Does not include Summer 2023.)
 - 2023-02-23: Fix duplicated Spring Break date.
 - 2023-01-10: Add note about how to make a Teams meeting (thanks, Mark Muyskens)
 - 2022-11-28: Load Spring 2023 schedule, fix bugs.
