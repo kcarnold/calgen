@@ -73,7 +73,7 @@ special_dates = [
     # Summer 2024
     ['2024-05-24', 'Memorial Day', None],
     ['2024-05-27', 'Memorial Day', None],
-    ('2023-06-19', 'Juneteenth', None],
+    ['2023-06-19', 'Juneteenth', None],
     ['2024-07-03', 'Independence Day', None],
     ['2024-07-04', 'Independence Day', None],
     ['2024-07-05', 'Independence Day', None],
