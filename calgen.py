@@ -344,8 +344,18 @@ if uploaded_file is not None:
 
 
         from calendar_view.calendar import Calendar
+        from calendar_view.core.calendar_grid import CalendarGrid
+        from calendar_view.core.calendar_events import CalendarEvents
         from calendar_view.core import data
         from calendar_view.core.event import Event as CVEvent, EventStyles
+
+        from datetime import date
+        def _get_day_title(self, day: date) -> str:
+            return day.strftime("%a")
+        
+        CalendarGrid._get_day_title = _get_day_title
+        CalendarEvents._get_day_title = _get_day_title
+
 
         first_day = pd.Timestamp(parsed['Start Date'].min().date()).tz_localize("US/Eastern")
         print(first_day)
