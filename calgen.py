@@ -6,6 +6,12 @@ import datetime
 
 from ical_writer import all_day_event, recurring_event, write_ics
 
+import warnings
+
+# Ignore warnings about missing default styles in openpyxl
+# openpyxl/styles/stylesheet.py:226: UserWarning: Workbook contains no default style, apply openpyxl's default
+warnings.filterwarnings('ignore', category=UserWarning, module='openpyxl')
+
 #st.set_page_config(layout="wide")
 
 def letter_to_day(d):
