@@ -1,12 +1,21 @@
-from typing import List
-import streamlit as st
-import re
-import pandas as pd
 import datetime
+import re
+import warnings
+from collections import Counter
+from typing import List
+
+import icalendar
+import pandas as pd
+import recurring_ical_events
+import streamlit as st
+from calendar_view.calendar import Calendar
+from calendar_view.core import data as calendar_view_data
+from calendar_view.core.calendar_events import CalendarEvents
+from calendar_view.core.calendar_grid import CalendarGrid
+from calendar_view.core.event import Event as CVEvent
+from calendar_view.core.event import EventStyles
 
 from ical_writer import all_day_event, recurring_event, write_ics
-
-import warnings
 
 # Ignore warnings about missing default styles in openpyxl
 # openpyxl/styles/stylesheet.py:226: UserWarning: Workbook contains no default style, apply openpyxl's default
@@ -87,7 +96,6 @@ special_dates = [
 ]
 special_dates = [SpecialDate(*d) for d in special_dates]
 
-from collections import Counter
 duplicated_dates = [d for d, c in Counter([d.date for d in special_dates]).items() if c > 1]
 if duplicated_dates:
     st.warning("Warning: duplicated dates:", duplicated_dates)
@@ -320,9 +328,6 @@ if uploaded_file is not None:
     st.write("""I recommend importing this into an unused calendar first, to test it.""")
 
     if st.checkbox("Show meeting calendar"):
-        import icalendar
-        import recurring_ical_events
-
         calendar = icalendar.Calendar.from_ical(ics_string)
 
         raw_events = recurring_ical_events.of(calendar).between(earliest_date, latest_date)
@@ -343,14 +348,7 @@ if uploaded_file is not None:
             })
 
 
-        from calendar_view.calendar import Calendar
-        from calendar_view.core.calendar_grid import CalendarGrid
-        from calendar_view.core.calendar_events import CalendarEvents
-        from calendar_view.core import data
-        from calendar_view.core.event import Event as CVEvent, EventStyles
-
-        from datetime import date
-        def _get_day_title(self, day: date) -> str:
+        def _get_day_title(self, day: datetime.date) -> str:
             return day.strftime("%a")
         
         CalendarGrid._get_day_title = _get_day_title
@@ -359,18 +357,20 @@ if uploaded_file is not None:
 
         first_day = pd.Timestamp(parsed['Start Date'].min().date()).tz_localize("US/Eastern")
         print(first_day)
-        last_day = pd.Timestamp(first_day) + pd.Timedelta(days = 5)
+        last_day = (pd.Timestamp(first_day) + pd.Timedelta(days = 5))
 
         week_events = [
             CVEvent(day=event['begin'].date(), start=event['begin'].strftime("%H:%M"), end=event['end'].strftime("%H:%M"), title=event['name'])
             for event in cal_events
             if event['begin'] <= last_day
         ]
-        cal_view = Calendar.build(data.CalendarConfig(
+        cal_view = Calendar.build(calendar_view_data.CalendarConfig(
             lang = "en",
             dates = f"{first_day.date()} - {last_day.date()}",
             hours = "8 - 22",
         ))
+
+
         cal_view.add_events(week_events)
         cal_view.events.group_cascade_events()
         cal_view._build_image()
