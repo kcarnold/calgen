@@ -313,7 +313,7 @@ if uploaded_file is not None:
 
     st.write("""I recommend importing this into an unused calendar first, to test it.""")
 
-    if st.checkbox("Show all events (debugging) (may have the incorrect time zone)"):
+    if st.checkbox("Show meeting calendar"):
         import icalendar
         import recurring_ical_events
 
@@ -331,18 +331,53 @@ if uploaded_file is not None:
                 "location": evt.decoded("LOCATION").decode('utf-8') if 'LOCATION' in evt else None,
                 "begin": begin,
                 "day": begin.strftime("%a %b %d"),
+                "day_of_week": begin.strftime("%a"),
                 "time": f"{start} - {end}"
             })
 
         cal_table = pd.DataFrame(cal_events)
-        cal_table['short_name'] = cal_table['name'].str.extract(r'^(\w+ \d+)')
+        cal_table['begin'] = pd.to_datetime(cal_table['begin'], errors='raise', utc=True)
+        cal_table['short_name'] = cal_table['name'].str.extract(r'^(\w+ \d+)').fillna('')
 
-        for title, data in cal_table.groupby('short_name', dropna=False):
-            col_names = ['day', 'time', 'name', 'location']
-            if pd.isna(title):
-                title = 'Special Events'
-                col_names = ['day', 'name']
+        classes_to_include = []
+        for class_name in cal_table['short_name'].unique():
+            if class_name == '' or st.checkbox(f"Include {class_name}?", value=True):
+                classes_to_include.append(class_name)
+        if len(classes_to_include) > 0:
+            cal_table = cal_table[cal_table['short_name'].isin(classes_to_include)]
 
-            st.markdown("## " + title)
-            data = data.sort_values('begin')
-            st.write(data[col_names].style.hide(axis="index").to_html(), unsafe_allow_html=True)
+        include_times = st.checkbox("Include times?", value=False)
+
+        # Reorganize the dataframe into a row per week and a column for each day of the week when the class meets.
+        cal_table['week'] = cal_table['begin'].dt.isocalendar().week
+        days_to_include = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+        days_to_include = [day for day in days_to_include if day in cal_table['day_of_week'].unique()]
+        cal_table['day_of_week'] = pd.Categorical(cal_table['day_of_week'], categories=days_to_include, ordered=True)
+
+        # For each day in the week, concatenate the names and times of all of the events that occur on that day.
+        # For all-day events, include the name of the event.
+        row_per_day = cal_table.groupby(['week', 'day_of_week'], dropna=False, as_index=False).apply(lambda rows: '; '.join([
+            (f"{row['time']}: " if include_times else '') + f"{row['name']}" if row['short_name'] != '' else row['name']
+            for _, row in rows.iterrows()
+        ]))
+
+        row_per_day.info()
+        
+        st.write(row_per_day.set_index(['week', 'day_of_week']).unstack().fillna('').style.hide(axis='columns', level=0).to_html(), unsafe_allow_html=True)
+        
+
+
+        if False:
+            for week, data in cal_table.groupby(cal_table['begin'].dt.week, dropna=False):
+                st.markdown(f"## Week {week}")
+                st.write(data[['day', 'time', 'name', 'location']].style.hide_index().to_html(), unsafe_allow_html=True)
+
+            for title, data in cal_table.groupby('short_name', dropna=False):
+                col_names = ['day', 'time', 'name', 'location']
+                if pd.isna(title):
+                    title = 'Special Events'
+                    col_names = ['day', 'name']
+
+                st.markdown("## " + title)
+                data = data.sort_values('begin')
+                st.write(data[col_names].style.hide(axis="index").to_html(), unsafe_allow_html=True)
