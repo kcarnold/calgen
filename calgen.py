@@ -121,6 +121,27 @@ def iter_meeting_dates(start_date: datetime.date, end_date: datetime.date, patte
         cur += one_day
 
 
+def get_sample_week_events(pattern: str, sample_week_start: datetime.date, start_time, end_time, title: str):
+    '''Get a sample week of events for the given class.'''
+    start_hour = start_time['hour']
+    start_min = start_time['minute']
+    end_hour = end_time['hour']
+    end_min = end_time['minute']
+    days = [letter_to_day(d) for d in pattern]
+    # Find a Monday after the sample week start.
+    cur = sample_week_start
+    while cur.weekday() != 0:
+        cur += datetime.timedelta(days=1)
+    # Collect events for the week.
+    sample_week_events = []
+    for i in range(7):
+        if i in days:
+            sample_week_events.append(
+                CVEvent(day=cur, start=f"{start_hour:02d}:{start_min:02d}", end=f"{end_hour:02d}:{end_min:02d}", title=title))
+        cur += datetime.timedelta(days=1)
+    return sample_week_events
+
+
 def parse_time(x):
     """Parse time strings like 1:00 PM into hour=13, min=0.
     
@@ -246,6 +267,7 @@ if uploaded_file is not None:
     earliest_date = min(parsed['Start Date']).date()
     latest_date = max(parsed['End Date']).date()
 
+    week_events = []
     recurring_events = []
     for i in range(len(parsed)):
         section_name = parsed['Course Section'].iloc[i]
@@ -273,6 +295,15 @@ if uploaded_file is not None:
         actual_occurrences = [occur for occur in occurrences if occur[1]]
         first_meeting_date = actual_occurrences[0][0]
         last_meeting_date = actual_occurrences[-1][0]
+
+        week_events.extend(
+            get_sample_week_events(
+                pattern=meeting_pattern,
+                sample_week_start=first_meeting_date,
+                start_time = start_time_p,
+                end_time = end_time_p,
+                title=section_name,
+            ))
 
         exceptions_dates = [
             meeting_date
@@ -327,6 +358,29 @@ if uploaded_file is not None:
 
     st.write("""I recommend importing this into an unused calendar first, to test it.""")
 
+    # Monkey-patch the calendar view to use US-locale day names
+    def _get_day_title(self, day: datetime.date) -> str:
+        return day.strftime("%a")
+    
+    CalendarGrid._get_day_title = _get_day_title
+    CalendarEvents._get_day_title = _get_day_title
+
+    beginning_of_week = earliest_date
+    end_of_week = earliest_date + datetime.timedelta(days=4)
+    
+    cal_view = Calendar.build(calendar_view_data.CalendarConfig(
+        lang = "en",
+        dates = f"{beginning_of_week} - {end_of_week}",
+        hours = "8 - 22",
+    ))
+
+
+    cal_view.add_events(week_events)
+    cal_view.events.group_cascade_events()
+    cal_view._build_image()
+    st.image(cal_view.full_image)
+
+
     if st.checkbox("Show meeting calendar"):
         calendar = icalendar.Calendar.from_ical(ics_string)
 
@@ -346,35 +400,6 @@ if uploaded_file is not None:
                 "day_of_week": begin.strftime("%a"),
                 "time": f"{start} - {end}"
             })
-
-
-        def _get_day_title(self, day: datetime.date) -> str:
-            return day.strftime("%a")
-        
-        CalendarGrid._get_day_title = _get_day_title
-        CalendarEvents._get_day_title = _get_day_title
-
-
-        first_day = pd.Timestamp(parsed['Start Date'].min().date()).tz_localize("US/Eastern")
-        print(first_day)
-        last_day = (pd.Timestamp(first_day) + pd.Timedelta(days = 5))
-
-        week_events = [
-            CVEvent(day=event['begin'].date(), start=event['begin'].strftime("%H:%M"), end=event['end'].strftime("%H:%M"), title=event['name'])
-            for event in cal_events
-            if event['begin'] <= last_day
-        ]
-        cal_view = Calendar.build(calendar_view_data.CalendarConfig(
-            lang = "en",
-            dates = f"{first_day.date()} - {last_day.date()}",
-            hours = "8 - 22",
-        ))
-
-
-        cal_view.add_events(week_events)
-        cal_view.events.group_cascade_events()
-        cal_view._build_image()
-        st.image(cal_view.full_image)
 
 
         cal_table = pd.DataFrame(cal_events)
