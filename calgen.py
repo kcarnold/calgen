@@ -350,6 +350,9 @@ if uploaded_file is not None:
 
         # Reorganize the dataframe into a row per week and a column for each day of the week when the class meets.
         cal_table['week'] = cal_table['begin'].dt.isocalendar().week
+
+        cal_table['week'] = cal_table['week'] - st.number_input("Shift week numbers by", value=cal_table['week'].min() - 1, step=1, min_value=-52, max_value=52)
+
         days_to_include = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
         days_to_include = [day for day in days_to_include if day in cal_table['day_of_week'].unique()]
         cal_table['day_of_week'] = pd.Categorical(cal_table['day_of_week'], categories=days_to_include, ordered=True)
@@ -361,10 +364,7 @@ if uploaded_file is not None:
             for _, row in rows.iterrows()
         ]))
 
-        row_per_day.info()
-        
         st.write(row_per_day.set_index(['week', 'day_of_week']).unstack().fillna('').style.hide(axis='columns', level=0).to_html(), unsafe_allow_html=True)
-        
 
 
         if False:
