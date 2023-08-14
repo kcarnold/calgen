@@ -336,10 +336,36 @@ if uploaded_file is not None:
                 "name": evt.decoded('SUMMARY').decode('utf-8'),
                 "location": evt.decoded("LOCATION").decode('utf-8') if 'LOCATION' in evt else None,
                 "begin": begin,
+                "end": evt['DTEND'].dt,
                 "day": begin.strftime("%a %b %d"),
                 "day_of_week": begin.strftime("%a"),
                 "time": f"{start} - {end}"
             })
+
+
+        from calendar_view.calendar import Calendar
+        from calendar_view.core import data
+        from calendar_view.core.event import Event as CVEvent, EventStyles
+
+        first_day = pd.Timestamp(parsed['Start Date'].min().date()).tz_localize("US/Eastern")
+        print(first_day)
+        last_day = pd.Timestamp(first_day) + pd.Timedelta(days = 5)
+
+        week_events = [
+            CVEvent(day=event['begin'].date(), start=event['begin'].strftime("%H:%M"), end=event['end'].strftime("%H:%M"), title=event['name'])
+            for event in cal_events
+            if event['begin'] <= last_day
+        ]
+        cal_view = Calendar.build(data.CalendarConfig(
+            lang = "en",
+            dates = f"{first_day.date()} - {last_day.date()}",
+            hours = "8 - 22",
+        ))
+        cal_view.add_events(week_events)
+        cal_view.events.group_cascade_events()
+        cal_view._build_image()
+        st.image(cal_view.full_image)
+
 
         cal_table = pd.DataFrame(cal_events)
         cal_table['begin'] = pd.to_datetime(cal_table['begin'], errors='raise', utc=True)
