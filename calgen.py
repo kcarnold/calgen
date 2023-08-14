@@ -360,6 +360,7 @@ if uploaded_file is not None:
         cal_table['week'] = cal_table['week'] - st.number_input("Shift week numbers by", value=cal_table['week'].min() - 1, step=1, min_value=-52, max_value=52)
 
         days_to_include = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+        # Make sure that days are in the right order.
         days_to_include = [day for day in days_to_include if day in cal_table['day_of_week'].unique()]
         cal_table['day_of_week'] = pd.Categorical(cal_table['day_of_week'], categories=days_to_include, ordered=True)
 
