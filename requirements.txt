@@ -4,3 +4,4 @@ recurring-ical-events
 streamlit
 openpyxl
 calendar-view
+tabulate
