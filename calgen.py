@@ -350,7 +350,7 @@ if uploaded_file is not None:
     )
 
     st.download_button(
-        label="Download .ics file",
+        label=":calendar: :floppy_disk: Download .ics file",
         data=ics_string,
         file_name="teaching_schedule.ics",
         mime="text/calendar"
