@@ -404,7 +404,7 @@ if uploaded_file is not None:
 
         cal_table = pd.DataFrame(cal_events)
         cal_table['begin'] = pd.to_datetime(cal_table['begin'], errors='raise', utc=True)
-        cal_table['short_name'] = cal_table['name'].str.extract(r'^(\w+ \d+)').fillna('')
+        cal_table['short_name'] = cal_table['name'].str.extract(r'^(\w+\s*\d+)').fillna('')
 
         classes_to_include = []
         for class_name in cal_table['short_name'].unique():
