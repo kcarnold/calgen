@@ -439,7 +439,8 @@ if uploaded_file is not None:
         row_per_day = row_per_day.unstack().fillna('')
         row_per_day.columns.name = None
         st.write(row_per_day.to_html(), unsafe_allow_html=True)
-
+        if st.checkbox("Show as Markdown"):
+            st.code(row_per_day.reset_index().to_markdown(index=False))
 
         if False:
             for week, data in cal_table.groupby(cal_table['begin'].dt.week, dropna=False):
