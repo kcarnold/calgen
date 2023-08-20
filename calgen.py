@@ -437,7 +437,8 @@ if uploaded_file is not None:
 
         # Unstack one level of the index to get a column for each day of the week.
         row_per_day = row_per_day.unstack().fillna('')
-        st.dataframe(row_per_day, use_container_width=True)
+        row_per_day.columns.name = None
+        st.write(row_per_day.to_html(), unsafe_allow_html=True)
 
 
         if False:
