@@ -92,7 +92,18 @@ special_dates = [
     ['2024-07-03', 'Independence Day', None],
     ['2024-07-04', 'Independence Day', None],
     ['2024-07-05', 'Independence Day', None],
-    ['2024-08-17', 'Exams Start', -1]
+    ['2024-08-17', 'Exams Start', -1],
+    # Fall 2024
+    ['2024-09-02', 'Labor Day', None],
+    ['2024-10-18', 'Fall Break', None],
+    ['2024-10-21', 'Fall Break', None],
+    ['2024-10-22', 'Advising', None],
+    ['2024-10-23', 'Advising', None],
+    ['2024-11-27', 'Thanksgiving', None],
+    ['2024-11-28', 'Thanksgiving', None],
+    ['2024-11-29', 'Thanksgiving', None],
+    ['2024-12-13', 'Study', -1],
+
 ]
 special_dates = [SpecialDate(*d) for d in special_dates]
 
