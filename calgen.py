@@ -200,7 +200,7 @@ def parse_time(x):
 #doctest.run_docstring_examples(parse_time, globals())
 
 st.title("Workday Schedule Converter")
-st.write("by Ken Arnold (CS and Data Science) [Source code](https://github.com/kcarnold/calgen) Updated through Summer 2024.")
+st.write("by Ken Arnold (CS and Data Science) [Source code](https://github.com/kcarnold/calgen) Updated through Fall 2024.")
 st.write("""
 To use:
 
@@ -215,6 +215,8 @@ If you encounter any problems, please email your Excel file to ka37@calvin.edu.
 
 <details><summary>Changelog</summary>
 
+- 2024-06-17: Update for Fall 2024
+- 2023-08-20: Add weekly calendar view and table of meetings
 - 2023-05-31: Update through Summer 2024. (Does not include Summer 2023.)
 - 2023-02-23: Fix duplicated Spring Break date.
 - 2023-01-10: Add note about how to make a Teams meeting (thanks, Mark Muyskens)
