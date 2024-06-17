@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import datetime
 import re
 import warnings
@@ -38,7 +39,6 @@ class SpecialDate:
         if isinstance(pattern, str):
             pattern = letter_to_day(pattern)
         self.pattern = pattern
-        
 
 special_dates = [
     # Fall 2022
@@ -109,7 +109,29 @@ special_dates = [SpecialDate(*d) for d in special_dates]
 
 duplicated_dates = [d for d, c in Counter([d.date for d in special_dates]).items() if c > 1]
 if duplicated_dates:
-    st.warning("Warning: duplicated dates:", duplicated_dates)
+    st.warning(f"Warning: duplicated dates: {duplicated_dates}")
+
+
+@dataclass
+class AcademicEvent:
+    """
+    An event that follows the academic calendar.
+
+    Fields:
+    - pattern: the day-of-week pattern, like "MTWRFSU"
+    - name: the name of the event
+    - location: the location of the event
+    - meeting_time: the time of the event, like "8:30 AM - 9:20 AM"
+    - start_date: the first day of the event
+    - end_date: the last day of the event
+    """
+    pattern: str
+    name: str
+    location: str
+    meeting_time: str
+    start_date: datetime.datetime
+    end_date: datetime.datetime
+
 
 def iter_meeting_dates(start_date: datetime.date, end_date: datetime.date, pattern: str, special_dates):
     '''Yield all meeting times for the given class, given a meeting pattern.'''
@@ -275,21 +297,33 @@ if uploaded_file is not None:
         st.subheader("Locations")
         parsed['Location'] = get_shortnames(parsed['Location'])
 
+    parsed_internal = parsed.rename(
+            columns={"days": "pattern", "Course Section": "name", "Location": "location", "time": "meeting_time", "Start Date": "start_date", "End Date": "end_date"}
+        )[['pattern', 'name', 'location', 'meeting_time', 'start_date', 'end_date']]
+    
+    edited = st.data_editor(parsed_internal, num_rows='dynamic', hide_index=True)
+
+    academic_events = [
+        AcademicEvent(**e._asdict())
+        for e in edited.itertuples(index=False, name="AcademicEvent")
+    ]
+    print(len(edited))
+
     earliest_date = min(parsed['Start Date']).date()
     latest_date = max(parsed['End Date']).date()
 
     week_events = []
     recurring_events = []
-    for i in range(len(parsed)):
-        section_name = parsed['Course Section'].iloc[i]
-        meeting_time = parsed['time'].iloc[i]
+    for i, academic_event in enumerate(academic_events):
+        section_name = academic_event.name
+        meeting_time = academic_event.meeting_time
 
         if not isinstance(meeting_time, str):
             st.warning(f"Skipping {section_name} because no meeting times.")
             continue
 
-        location = parsed['Location'].iloc[i]
-        meeting_pattern = parsed['days'].iloc[i]
+        location = academic_event.location
+        meeting_pattern = academic_event.pattern
         start_time, end_time = meeting_time.split(' - ')
         start_time_p = parse_time(start_time)
         end_time_p = parse_time(end_time)
@@ -297,8 +331,8 @@ if uploaded_file is not None:
 
         has_occurred = False
         occurrences = list(iter_meeting_dates(
-            parsed['Start Date'].iloc[i].date(),
-            parsed['End Date'].iloc[i].date(),
+            academic_event.start_date.date(),
+            academic_event.end_date.date(),
             meeting_pattern,
             special_dates
         ))
@@ -350,11 +384,21 @@ if uploaded_file is not None:
                     exceptions=[])
             )
 
-    all_day_events = [
-        all_day_event(special.date, special.name)
+    relevant_special_dates = [
+        special
         for special in special_dates
         if earliest_date <= special.date <= latest_date
-    ]
+    ]    
+
+    if len(relevant_special_dates) > 0 and st.checkbox("Include special dates? ({})".format(
+        ', '.join(special.name for special in relevant_special_dates)
+    ), value=True):
+        all_day_events = [
+            all_day_event(special.date, special.name)
+            for special in relevant_special_dates
+        ]
+    else:
+        all_day_events = []
 
     ics_string = write_ics(
         all_day_events + recurring_events
