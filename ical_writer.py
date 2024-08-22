@@ -41,7 +41,7 @@ def ics_date(date: datetime.date):
     return date.strftime("%Y%m%d")
     
 
-def ics_datetime(date: str, time):
+def ics_datetime(date: datetime.date, time):
     return f"{ics_date(date)}T{time['hour']:02d}{time['minute']:02d}00"
 
 
@@ -66,9 +66,10 @@ date_to_rrule = {
     'S': "SA"
 }
 
-def recurring_event(first_date: str, last_date: str, summary: str, location: str,
+def recurring_event(first_date: datetime.date, last_date: datetime.date | None, summary: str, location: str,
     start_time_p, end_time_p, meeting_pattern, exceptions):
     if meeting_pattern is not None:
+        assert last_date is not None
         pattern = ','.join(date_to_rrule[d] for d in meeting_pattern)
         rrule = f'''RRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY={pattern};UNTIL={ics_datetime(last_date, {'hour': 23, 'minute': 59})}Z'''
         exceptions_str = '\n'.join('EXDATE;TZID=America/Detroit:' + ics_datetime(exdate, start_time_p) for exdate in exceptions)
