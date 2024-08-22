@@ -8,11 +8,13 @@ from typing import List
 import pandas as pd
 
 from ical_writer import all_day_event, recurring_event, write_ics
+import logging
 
 # Ignore warnings about missing default styles in openpyxl
 # openpyxl/styles/stylesheet.py:226: UserWarning: Workbook contains no default style, apply openpyxl's default
 warnings.filterwarnings('ignore', category=UserWarning, module='openpyxl')
 
+logging.basicConfig(level=logging.WARNING)
 
 def letter_to_day(d):
     return 'MTWRFSU'.index(d)
@@ -99,7 +101,7 @@ special_dates = [SpecialDate(*d) for d in special_dates]
 
 duplicated_dates = [d for d, c in Counter([d.date for d in special_dates]).items() if c > 1]
 if duplicated_dates:
-    st.warning(f"Warning: duplicated dates: {duplicated_dates}")
+    logging.warning(f"Warning: duplicated dates: {duplicated_dates}")
 
 
 @dataclass
@@ -168,7 +170,9 @@ def parse_time(x):
 #import doctest
 #doctest.run_docstring_examples(parse_time, globals())
 
-def generate_ics(data):
+def df_to_academic_events(data: pd.DataFrame) -> List[AcademicEvent]:
+    data = data.copy()
+
     # Merge shadow reservations (multiple locations for the same course section and time)
     data['Location'] = data.groupby(['Course Section', 'Meeting Time'])['Location'].transform(lambda x: ', '.join(x))
     data = data.drop_duplicates(['Course Section', 'Meeting Time'])
@@ -179,20 +183,24 @@ def generate_ics(data):
     # Use single letters for each date ("R" instead of "TH" for Thursday)
     parsed['days'] = parsed['days'].str.replace('TH', 'R')
 
-    parsed_internal = parsed.rename(
-            columns={"days": "pattern", "Course Section": "name", "Location": "location", "time": "meeting_time", "Start Date": "start_date", "End Date": "end_date"}
-        )[['pattern', 'name', 'location', 'meeting_time', 'start_date', 'end_date']]
-    
-    edited = parsed_internal
+    # construct academicevents from each row
+    events = []
+    for row in parsed.itertuples():
+        events.append(AcademicEvent(
+            pattern=getattr(row, 'days'),
+            name=getattr(row, 'Course Section'),
+            location=getattr(row, 'Location'),
+            meeting_time=getattr(row, 'time'),
+            start_date=getattr(row, 'Start Date'),
+            end_date=getattr(row, 'End Date'),
+        ))
+    return events
 
-    academic_events = [
-        AcademicEvent(**e._asdict())
-        for e in edited.itertuples(index=False, name="AcademicEvent")
-    ]
-    print(len(edited))
 
-    earliest_date = min(parsed['Start Date']).date()
-    latest_date = max(parsed['End Date']).date()
+
+def generate_ics(academic_events, include_special_dates=True):
+    earliest_date = min(e.start_date for e in academic_events).date()
+    latest_date = max(e.end_date for e in academic_events).date()
 
     recurring_events = []
     for i, academic_event in enumerate(academic_events):
@@ -200,7 +208,7 @@ def generate_ics(data):
         meeting_time = academic_event.meeting_time
 
         if not isinstance(meeting_time, str):
-            st.warning(f"Skipping {section_name} because no meeting times.")
+            logging.warning(f"Skipping {section_name} because no meeting times.")
             continue
 
         location = academic_event.location
@@ -262,9 +270,7 @@ def generate_ics(data):
         if earliest_date <= special.date <= latest_date
     ]    
 
-    if len(relevant_special_dates) > 0 and st.checkbox("Include special dates? ({})".format(
-        ', '.join(special.name for special in relevant_special_dates)
-    ), value=True):
+    if len(relevant_special_dates) > 0 and include_special_dates:
         all_day_events = [
             all_day_event(special.date, special.name)
             for special in relevant_special_dates
@@ -278,3 +284,51 @@ def generate_ics(data):
     )
 
     return ics_string
+
+if __name__ == "__main__":
+    # demo
+    # data = pd.DataFrame({
+    #     'Course Section': ['CS 101', 'CS 101', 'CS 102', 'CS 103'],
+    #     'Location': ['Room 1', 'Room 2', 'Room 3', 'Room 4'],
+    #     'Meeting Time': ['MWF | 8:30 AM - 9:20 AM', 'MWF | 9:30 AM - 10:20 AM', 'TR | 10:30 AM - 11:20 AM', 'TR | 11:30 AM - 12:20 PM'],
+    #     'Start Date': ['2024-09-01', '2024-09-01', '2024-09-01', '2024-09-01'],
+    #     'End Date': ['2024-12-01', '2024-12-01', '2024-12-01', '2024-12-01'],
+    # })
+
+    events = [
+        AcademicEvent(
+            pattern='MWF',
+            name='CS 101',
+            location='Room 1',
+            meeting_time='8:30 AM - 9:20 AM',
+            start_date=datetime.datetime(2024, 9, 1),
+            end_date=datetime.datetime(2024, 12, 1),
+        ),
+        AcademicEvent(
+            pattern='MWF',
+            name='CS 101',
+            location='Room 2',
+            meeting_time='9:30 AM - 10:20 AM',
+            start_date=datetime.datetime(2024, 9, 1),
+            end_date=datetime.datetime(2024, 12, 1),
+        ),
+        AcademicEvent(
+            pattern='TR',
+            name='CS 102',
+            location='Room 3',
+            meeting_time='10:30 AM - 11:20 AM',
+            start_date=datetime.datetime(2024, 9, 1),
+            end_date=datetime.datetime(2024, 12, 1),
+        ),
+        AcademicEvent(
+            pattern='TR',
+            name='CS 103',
+            location='Room 4',
+            meeting_time='11:30 AM - 12:20 PM',
+            start_date=datetime.datetime(2024, 9, 1),
+            end_date=datetime.datetime(2024, 12, 1),
+        )
+    ]
+    
+    ics = generate_ics(events)
+    print(ics)
