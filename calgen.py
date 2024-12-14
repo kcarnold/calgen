@@ -18,6 +18,8 @@ from calendar_view.core.event import EventStyles
 
 from ical_writer import all_day_event, recurring_event, write_ics
 
+import csv
+
 # Ignore warnings about missing default styles in openpyxl
 # openpyxl/styles/stylesheet.py:226: UserWarning: Workbook contains no default style, apply openpyxl's default
 warnings.filterwarnings('ignore', category=UserWarning, module='openpyxl')
@@ -40,71 +42,19 @@ class SpecialDate:
             pattern = letter_to_day(pattern)
         self.pattern = pattern
 
-special_dates = [
-    # Fall 2022
-    ['2022-09-05', 'Labor Day', None],
-    ['2022-10-10', 'Fall Break', None],
-    ['2022-10-11', 'Fall Break', None],
-    ['2022-11-01', 'Advising', None],
-    ['2022-11-02', 'Advising', None],
-    ['2022-11-23', 'Thanksgiving', None],
-    ['2022-11-24', 'Thanksgiving', None],
-    ['2022-11-25', 'Thanksgiving', None],
-    ['2022-12-08', 'Study', -1],
-    # Spring 2023
-    ['2023-02-27', 'Spring Break', None],
-    ['2023-02-28', 'Spring Break', None],
-    ['2023-03-01', 'Spring Break', None],
-    ['2023-03-02', 'Spring Break', None],
-    ['2023-03-03', 'Spring Break', None],
-    ['2023-03-21', 'Advising', None],
-    ['2023-03-22', 'Advising', None],
-    ['2023-04-07', 'Good Friday', None],
-    ['2023-04-10', 'Easter Monday', None],
-    ['2023-04-20', 'Thursday with Friday schedule', "F"],
-    ['2023-04-21', 'Exams Start', -1],
-    # Fall 2023
-    ['2023-09-04', 'Labor Day', None],
-    ['2023-10-13', 'Fall Break', None],
-    ['2023-10-16', 'Fall Break', None],
-    ['2023-10-17', 'Advising', None],
-    ['2023-10-18', 'Advising', None],
-    ['2023-11-22', 'Thanksgiving', None],
-    ['2023-11-23', 'Thanksgiving', None],
-    ['2023-11-24', 'Thanksgiving', None],
-    ['2023-12-08', 'Study', -1],
-    # Spring 2024
-    ['2024-01-15', 'MLK Day', None],
-    ['2024-03-04', 'Spring Break', None],
-    ['2024-03-05', 'Spring Break', None],
-    ['2024-03-06', 'Spring Break', None],
-    ['2024-03-07', 'Spring Break', None],
-    ['2024-03-08', 'Spring Break', None],
-    ['2024-03-20', 'Advising', None],
-    ['2024-03-21', 'Advising', None],
-    ['2024-03-29', 'Good Friday', None],
-    ['2024-04-01', 'Easter Monday', None],
-    ['2024-04-27', 'Exams Start', -1],
-    # Summer 2024
-    ['2024-05-24', 'Memorial Day', None],
-    ['2024-05-27', 'Memorial Day', None],
-    ['2023-06-19', 'Juneteenth', None],
-    ['2024-07-03', 'Independence Day', None],
-    ['2024-07-04', 'Independence Day', None],
-    ['2024-07-05', 'Independence Day', None],
-    ['2024-08-17', 'Exams Start', -1],
-    # Fall 2024
-    ['2024-09-02', 'Labor Day', None],
-    ['2024-10-18', 'Fall Break', None],
-    ['2024-10-21', 'Fall Break', None],
-    ['2024-10-22', 'Advising', None],
-    ['2024-10-23', 'Advising', None],
-    ['2024-11-27', 'Thanksgiving', None],
-    ['2024-11-28', 'Thanksgiving', None],
-    ['2024-11-29', 'Thanksgiving', None],
-    ['2024-12-13', 'Study', -1],
+# Load special dates from CSV file
+def load_special_dates(file_path):
+    special_dates = []
+    with open(file_path, newline='') as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            date = row['date']
+            name = row['name']
+            pattern = row['pattern']
+            special_dates.append([date, name, pattern])
+    return special_dates
 
-]
+special_dates = load_special_dates('special_dates.csv')
 special_dates = [SpecialDate(*d) for d in special_dates]
 
 duplicated_dates = [d for d, c in Counter([d.date for d in special_dates]).items() if c > 1]
@@ -149,7 +99,7 @@ def iter_meeting_dates(start_date: datetime.date, end_date: datetime.date, patte
         is_exception = normally_meets_today and not meets_today
         is_abnormal_meeting = not normally_meets_today and meets_today
         yield cur, meets_today, is_exception, is_abnormal_meeting
-        if effective_date == -1:
+        if effective_date == 'END_OF_SEMESTER':
             semester_ended = True
         cur += one_day
 
