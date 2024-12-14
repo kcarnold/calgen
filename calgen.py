@@ -29,7 +29,7 @@ warnings.filterwarnings('ignore', category=UserWarning, module='openpyxl')
 def letter_to_day(d):
     return 'MTWRFSU'.index(d)
 
-# Special dates (TODO: don't hard-code)
+# Special dates
 # Third entry is the pattern: what day-of-week it corresponds to. See iter_meeting_dates.
 
 class SpecialDate:
@@ -351,8 +351,9 @@ if uploaded_file is not None:
         if earliest_date <= special.date <= latest_date
     ]    
 
+    special_date_counter = Counter(special.name for special in relevant_special_dates)
     if len(relevant_special_dates) > 0 and st.checkbox("Include special dates? ({})".format(
-        ', '.join(special.name for special in relevant_special_dates)
+        ', '.join(f"{name} ({count})" for name, count in special_date_counter.items())
     ), value=True):
         all_day_events = [
             all_day_event(special.date, special.name)
