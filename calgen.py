@@ -228,6 +228,9 @@ def load_file(uploaded_file):
             st.write(data)
             st.stop()
         data = read_file(skiprows=idx + 1)
+
+    if 'Status' in data.columns:
+        data = data[data['Status'] != 'Canceled']
     return data
 
 
