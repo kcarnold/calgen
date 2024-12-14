@@ -38,8 +38,14 @@ class SpecialDate:
             date =  datetime.date.fromisoformat(date)
         self.date = date
         self.name = name
-        if isinstance(pattern, str):
+        if isinstance(pattern, str) and len(pattern) == 1:
             pattern = letter_to_day(pattern)
+        elif pattern == 'END_OF_SEMESTER':
+            pattern = pattern
+        elif pattern == '': # which means no class
+            pattern = ""
+        else:
+            raise ValueError(f"Invalid pattern {pattern}")
         self.pattern = pattern
 
 # Load special dates from CSV file
