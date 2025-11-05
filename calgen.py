@@ -40,7 +40,7 @@ class SpecialDate:
         self.name = name
         if isinstance(pattern, str) and len(pattern) == 1:
             pattern = letter_to_day(pattern)
-        elif pattern == 'END_OF_SEMESTER':
+        elif pattern == 'END_OF_SEMESTER' or pattern == 'ADVISORY':
             pattern = pattern
         elif pattern == '': # which means no class
             pattern = ""
@@ -98,7 +98,7 @@ def iter_meeting_dates(start_date: datetime.date, end_date: datetime.date, patte
     while cur <= end_date:
         effective_date = true_date = cur.weekday()
         for special in special_dates:
-            if cur == special.date:
+            if cur == special.date and special.pattern != "ADVISORY":
                 effective_date = special.pattern
         normally_meets_today = true_date in days
         meets_today = effective_date in days and not semester_ended

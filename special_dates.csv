@@ -67,6 +67,7 @@ date,name,pattern
 2025-04-21,Easter Monday,
 2025-05-03,Exams Start,END_OF_SEMESTER
 2025-09-01,Labor Day,
+2025-09-11,Drop Date,ADVISORY
 2025-10-17,Fall Break,
 2025-10-20,Fall Break,
 2025-10-21,Advising,
@@ -76,6 +77,7 @@ date,name,pattern
 2025-11-28,Thanksgiving,
 2025-12-12,Study,END_OF_SEMESTER
 2026-01-19,MLK Day,
+2026-01-29,Drop Date,ADVISORY
 2026-03-09,Spring Break,
 2026-03-10,Spring Break,
 2026-03-11,Spring Break,
