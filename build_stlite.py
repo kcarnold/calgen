@@ -80,9 +80,11 @@ mount(
 </html>
 """
 
-    out_path = ROOT / "docs" / "index.html"
-    out_path.parent.mkdir(exist_ok=True)
+    out_dir = ROOT / "docs"
+    out_dir.mkdir(exist_ok=True)
+    out_path = out_dir / "index.html"
     out_path.write_text(html)
+    (out_dir / ".nojekyll").touch()
     print(f"Wrote {out_path} ({len(html)} bytes)")
 
 
